@@ -1,0 +1,9 @@
+{
+  "name": "logicflow",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "author": "Michael Pote",
+  "private": false,
+  "dependencies": {}
+}
