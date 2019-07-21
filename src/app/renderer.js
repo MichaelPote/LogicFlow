@@ -34,8 +34,8 @@ define(
 
 				this.lastFrameTime = 0;
 
-				this.zoomTarget = 3;
-				this.zoomLevel = 3;
+				this.zoomTarget = 2;
+				this.zoomLevel = 2;
 
 				this.width = canvas.width;
 				this.height = canvas.height;
@@ -61,8 +61,8 @@ define(
 				this.bh = Images.backtile.naturalHeight;
 
 				this.onResize();
-				ctx.strokeStyle = '#FF0000';
-				ctx.clearRect(0, 0, ctx.width, ctx.height);
+
+
 				window.requestAnimationFrame(this.render);
 
 			}
@@ -89,7 +89,7 @@ define(
 			}
 
 			render(time) {
-				let t = (time - this.lastFrameTime) / 16; //Get the timescale between this frame and an ideal 60fps (16ms per frame). 1 = running at 60fps, 0.5 = running at 120fps.
+				let t = (time - this.lastFrameTime) / 16; //Get the timescale between this frame and an ideal 60fps (16ms per frame). t = 1 => we running at 60fps, t = 0.5 => running at 120fps. etc.
 
 				//Is there a zoom to perform?
 				if (this.zoomLevel < this.zoomTarget-0.001 || this.zoomLevel > this.zoomTarget + 0.001)
@@ -101,27 +101,19 @@ define(
 					let oldVz = this.vz;
 					this.vz = Math.pow(2,(this.zoomLevel))*0.25; //Convert linear zoomLevel value into exponential vz scale value.
 
-					this.vx += this.mx*oldVz/this.vz - this.mx;
-					this.vy += this.my*oldVz/this.vz - this.my;
+					//Adjust the camera position to zoom from the point under the mouse cursor:
+					this.vx -= (this.mx/oldVz - this.mx/this.vz);
+					this.vy -= (this.my/oldVz - this.my/this.vz);
 
-
-					/*
-					this.vz += zoomDelta;
-					if (zoomDelta > 0)
-					{
-
-						//TODO: Fix the zooming to center the vx and vy while zooming.
-						this.vx -= zoomDelta * this.width*(1/this.vz) * 0.5;
-						this.vy -= zoomDelta * this.height*(1/this.vz) * 0.5;
-					}
-					 */
 				}
 
+				//Convert background size and camera position into camera space:
 				this.bws = this.bw * this.vz;
 				this.bhs = this.bh * this.vz;
 				this.vxs = this.vx * this.vz;
 				this.vys = this.vy * this.vz;
 
+				//Offsets to add to the background tile:
 				let boffsetx = (this.vxs % this.bws);
 				let boffsety = (this.vys % this.bhs);
 
@@ -139,7 +131,7 @@ define(
 				}
 
 
-				//ctx.clearRect(0,0,50,30);
+				//Display FPS:
 				ctx.fillText(this.fps+" FPS. Vz = " + this.vz, 10, 10);
 
 				_fpscounter++;
