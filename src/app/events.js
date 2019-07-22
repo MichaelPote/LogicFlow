@@ -7,6 +7,7 @@ define(
 		let Events = _.extend({
 
 			EVENT_LOADED: "loaded",
+			EVENT_RESIZE: "resize",
 			EVENT_MOUSEMOVE: 'onmousemove',
 			EVENT_MOUSEDOWN: 'onmousedown',
 			EVENT_MOUSEUP: 'onmouseup',

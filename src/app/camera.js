@@ -14,10 +14,14 @@ define(
 
 			isDragging: false,
 
-			sx: 0,
+			sx: 0, //The position the mouse was in when clicking started.
 			sy: 0,
 
+			mx: 0, //The current position of the mouse.
+			my: 0,
 
+			canvasWidth: 0, //Width and height of the canvas.
+			canvasHeight: 0,
 
 		}, Backbone.Events);
 
@@ -34,38 +38,61 @@ define(
 			Camera.mouseButtonDown = e.originalEvent.button;
 			Camera.sx = e.originalEvent.clientX;
 			Camera.sy = e.originalEvent.clientY;
+			Camera.mx = Camera.sx;
+			Camera.my = Camera.sy;
 
 			//console.log("Canvas mouse down", Camera);
 
+			Events.trigger(Events.EVENT_MOUSEDOWN, Camera);
 
 		});
 
 		$canvas.on('mousemove', function(e){
-			if (Camera.isMouseDown)
-			{
-				if (Camera.mouseButtonDown == 2)
-				{
-						Renderer.addViewDelta(e.originalEvent.movementX, e.originalEvent.movementY);
-				}
-			}
-			Events.trigger(Events.EVENT_MOUSEMOVE, e.originalEvent.clientX, e.originalEvent.clientY);
+			Camera.mx = e.originalEvent.clientX;
+			Camera.my = e.originalEvent.clientY;
+
+			Events.trigger(Events.EVENT_MOUSEMOVE, Camera, e.originalEvent.movementX, e.originalEvent.movementY);
 		});
 
 		$canvas.on('mouseup', function(e){
 			e.preventDefault();
 
-			Camera.isMouseDown = false;
-			Camera.isDragging = false;
+			if (Camera.isMouseDown)
+			{
+				Camera.isMouseDown = false;
+				Camera.isDragging = false;
+
+				Events.trigger(Events.EVENT_MOUSEUP, Camera);
+			}
 		});
 
 		$canvas.on('mouseleave', function(e){
-			Camera.isMouseDown = false;
-			Camera.isDragging = false;
+			if (Camera.isMouseDown)
+			{
+				Camera.isMouseDown = false;
+				Camera.isDragging = false;
+				Events.trigger(Events.EVENT_MOUSEUP, Camera);
+			}
+
 		});
 
 		$canvas.on('wheel', function(e){
 			e.preventDefault();
-			Renderer.addZoomDelta(-e.originalEvent.deltaY * 0.02);
+			Events.trigger(Events.EVENT_ZOOM, Camera, e.originalEvent.deltaY);
+
+		});
+
+		const _resizeFunc = function(){
+			Camera.canvasWidth = $canvas.width();
+			Camera.canvasHeight = $canvas.height();
+
+			Events.trigger(Events.EVENT_RESIZE, Camera, Camera.canvasWidth, Camera.canvasHeight);
+		};
+
+		$(window).resize(_.debounce(_resizeFunc, 100));
+
+		$(document).ready(function(){
+			_resizeFunc();
 		});
 
 		return Camera;

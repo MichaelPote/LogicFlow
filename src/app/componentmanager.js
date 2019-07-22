@@ -9,7 +9,6 @@ function($, Events)
 	const ComponentManager = {
 
 		components: [],
-		wires: [],
 
 		addComponent: function(comp){
 

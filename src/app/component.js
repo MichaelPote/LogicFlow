@@ -2,31 +2,35 @@ define(
 	[
 		'jquery',
 		'app/events',
+		'app/images',
 	],
-function($, Events)
+function($, Events, Images)
 {
 
 	class Component
 	{
-		constructor()
+		constructor(x, y)
 		{
 
-			this.pins = [];
-			this.width = 10;
+			this.x = x; //Postion in the world
+			this.y = y;
+			this.width = 10; //Width and height of this component.
 			this.height = 10;
+
 			this.type = "";
 			this.name = "";
 
-			this.onRender = this.onRender.bind(this);
+			this.render = this.render.bind(this);
 		}
 
-		loadFromJSON(json)
+		render(ctx)
 		{
+			/** @var CanvasRenderingContext2D ctx */
+			//ctx.strokeStyle = "#FFF";
+			//ctx.strokeWidth = 2;
 
-		}
-
-		onRender(ctx)
-		{
+			ctx.strokeRect(0, 0, this.width, this.height);
+			//ctx.drawImage(Images.backtileZO, 0, 0, this.width, this.height);
 
 		}
 

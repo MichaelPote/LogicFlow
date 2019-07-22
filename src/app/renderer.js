@@ -2,9 +2,11 @@ define(
 	[
 		'jquery',
 		'app/events',
-		'app/images'
+		'app/camera',
+		'app/images',
+		'app/componentmanager',
 	],
-	function($, Events, Images)
+	function($, Events, Camera, Images, ComponentManager)
 	{
 
 		const canvas = document.getElementById('canvas');
@@ -29,13 +31,10 @@ define(
 				this.bws = 0; //Background tile width (scaled with zoom)
 				this.bhs = 0; //Background tile height (scaled with zoom)
 
-				this.mx = 0; //Mouse position X
-				this.my = 0; //Mouse position Y
-
 				this.lastFrameTime = 0;
 
-				this.zoomTarget = 2;
-				this.zoomLevel = 2;
+				this.zoomTarget = 2; //The Zoom Target is where the zoomLevel always tries to move towards. Zoom Levels go from 1 = 50%, 2 = 100%, 3 = 150% ... there is no upper limit.
+				this.zoomLevel = 2; //The actual current zoom level (not necessarily what the user requested). Could be interpolating between zoomTarget.
 
 				this.width = canvas.width;
 				this.height = canvas.height;
@@ -45,12 +44,26 @@ define(
 				this.render = this.render.bind(this);
 				setInterval(this.displayFps.bind(this), 1000);
 
-				$(window).resize(this.onResize.bind(this));
 
 				let self = this;
-				Events.on(Events.EVENT_MOUSEMOVE, function(x,y){
-					self.mx = x;
-					self.my = y;
+
+				Events.on(Events.EVENT_RESIZE, function(cam){
+					self.onResize();
+				});
+
+				Events.on(Events.EVENT_MOUSEMOVE, function(cam, deltaX, deltaY){
+
+					if (cam.isMouseDown)
+					{
+						if (cam.mouseButtonDown == 2)
+						{
+							self.addViewDelta(deltaX, deltaY);
+						}
+					}
+				});
+
+				Events.on(Events.EVENT_ZOOM, function(cam, zoomDelta){
+					self.addZoomDelta(-zoomDelta * 0.02);
 				});
 
 			}
@@ -60,19 +73,19 @@ define(
 				this.bw = Images.backtile.naturalWidth;
 				this.bh = Images.backtile.naturalHeight;
 
-				this.onResize();
-
+				if (this.width == 0) this.onResize();
 
 				window.requestAnimationFrame(this.render);
-
 			}
 
 			onResize() {
-				canvas.width = $(canvas).width();
-				canvas.height = $(canvas).height();
+				canvas.width = Camera.canvasWidth;
+				canvas.height = Camera.canvasHeight;
 				this.width = canvas.width;
 				this.height = canvas.height;
 
+				ctx.fillStyle = "#FFFFFF";
+				ctx.strokeStyle = "#FFFFFF";
 				console.log("Renderer: " + this.width + "x" + this.height);
 			}
 
@@ -84,8 +97,8 @@ define(
 
 			addViewDelta(dx, dy)
 			{
-				this.vx += dx * (1 / this.vz);
-				this.vy += dy * (1 / this.vz);
+				this.vx += -dx * (1 / this.vz);
+				this.vy += -dy * (1 / this.vz);
 			}
 
 			render(time) {
@@ -102,8 +115,8 @@ define(
 					this.vz = Math.pow(2,(this.zoomLevel))*0.25; //Convert linear zoomLevel value into exponential vz scale value.
 
 					//Adjust the camera position to zoom from the point under the mouse cursor:
-					this.vx -= (this.mx/oldVz - this.mx/this.vz);
-					this.vy -= (this.my/oldVz - this.my/this.vz);
+					this.vx += (Camera.mx/oldVz - Camera.mx/this.vz);
+					this.vy += (Camera.my/oldVz - Camera.my/this.vz);
 
 				}
 
@@ -114,12 +127,12 @@ define(
 				this.vys = this.vy * this.vz;
 
 				//Offsets to add to the background tile:
-				let boffsetx = (this.vxs % this.bws);
-				let boffsety = (this.vys % this.bhs);
+				let boffsetx = (-this.vxs % this.bws);
+				let boffsety = (-this.vys % this.bhs);
 
 				//Draw the grid background:
-				let backImg = (this.zoomLevel < 2 ? Images.backtileZO : Images.backtile);
-				if (this.bws > 0 && this.bhs > 0)
+				let backImg = (this.zoomLevel < 2 ? Images.backtileZO : Images.backtile); //Simple switching between two images depending on zoom level.
+				if (this.bws > 0 && this.bhs > 0) //Make sure that the background size is defined before trying to divide by it.
 				{
 					for (let x = Math.ceil(this.width / this.bws); x >= -1; x--)
 					{
@@ -130,9 +143,37 @@ define(
 					}
 				}
 
+				ctx.save();
+				ctx.beginPath();
+
+				let componentsRendered = 0;
+
+				for (let i = ComponentManager.components.length-1; i >= 0; i--)
+				{
+					let thisComponent = ComponentManager.components[i];
+
+					//Transform component position into camera space:
+					let componentX = (-this.vx + thisComponent.x) * this.vz;
+					let componentY = (-this.vy + thisComponent.y) * this.vz;
+					let componentW = thisComponent.width * this.vz;
+					let componentH = thisComponent.height * this.vz;
+
+					if (componentX >= -componentW && componentX <= this.width+componentW)
+						if (componentY >= -componentH && componentY <= this.height+componentH)
+						{
+							//Check if the component is inside the view. Otherwise dont bother rendering it.
+							ctx.setTransform(this.vz, 0, 0, this.vz, componentX, componentY);
+							//ctx.fillText(componentW.toFixed(0), 10, 10);
+							thisComponent.render(ctx);
+							componentsRendered++;
+						}
+				}
+
+				ctx.restore();
+
 
 				//Display FPS:
-				ctx.fillText(this.fps+" FPS. Vz = " + this.vz, 10, 10);
+				ctx.fillText(this.fps+" FPS. View X:"+this.vx.toFixed(2)+" View Y: "+this.vy.toFixed(2)+" Zoom:" + this.vz.toFixed(2) + " Components Rendered: " + componentsRendered , 10, 10);
 
 				_fpscounter++;
 				window.requestAnimationFrame(this.render);
