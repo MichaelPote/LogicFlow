@@ -25,13 +25,10 @@ function($, Events, Images)
 
 		render(ctx)
 		{
-			/** @var CanvasRenderingContext2D ctx */
-			//ctx.strokeStyle = "#FFF";
-			//ctx.strokeWidth = 2;
 
+			/** @var CanvasRenderingContext2D ctx */
 			ctx.strokeRect(0, 0, this.width, this.height);
 			//ctx.drawImage(Images.backtileZO, 0, 0, this.width, this.height);
-
 		}
 
 	}

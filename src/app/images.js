@@ -14,7 +14,7 @@ define(
 			let img = new Image();
 			imagesLeftToLoad++;
 
-			console.log("Loading ", src, " now have ", imagesLeftToLoad, " left to load.");
+			console.log("Queued ", src, ". now have ", imagesLeftToLoad, " left to load.");
 			img.onload = function(){
 				imagesLeftToLoad--;
 				console.log("Loading ", src, " DONE ", imagesLeftToLoad, " left to load.");
@@ -35,6 +35,7 @@ define(
 		const Images = {
 			backtile: createImage("assets/img/backtile.png"),
 			backtileZO: createImage("assets/img/backtile-zoomedout.png"),
+			backtileZI: createImage("assets/img/backtile-zoomedin.png"),
 		};
 
 		return Images;

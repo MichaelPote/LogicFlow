@@ -25,11 +25,8 @@ define(
 				this.vxs = 0; //View X position (scaled with zoom)
 				this.vys = 0; //View Y position (scaled with zoom)
 
-				this.bw = 0; //Background tile width
-				this.bh = 0; //Background tile height
-
-				this.bws = 0; //Background tile width (scaled with zoom)
-				this.bhs = 0; //Background tile height (scaled with zoom)
+				this.backTileSize = 96; //Background tile size
+				this.backTileSizeScaled = 96; //Background tile width (scaled with zoom)
 
 				this.lastFrameTime = 0;
 
@@ -70,8 +67,8 @@ define(
 
 			start()
 			{
-				this.bw = Images.backtile.naturalWidth;
-				this.bh = Images.backtile.naturalHeight;
+				//backTileSize is now a predefined constant, doesnt have to be taken from the image's width.
+				//this.backTileSize = Images.backtile.naturalWidth;
 
 				if (this.width == 0) this.onResize();
 
@@ -120,31 +117,37 @@ define(
 
 				}
 
+				let backImg = (this.zoomLevel < 2 ? Images.backtileZO : (this.zoomLevel > 4 ? Images.backtileZI : Images.backtile)); //Simple switching between two images depending on zoom level.
+
+
 				//Convert background size and camera position into camera space:
-				this.bws = this.bw * this.vz;
-				this.bhs = this.bh * this.vz;
-				this.vxs = this.vx * this.vz;
+				this.backTileSizeScaled = (this.backTileSize * this.vz);
+				this.backTileSizeScaled = Math.round(this.backTileSizeScaled*10)/10;
+
+				//Infinite grid resolution:
+				while (this.backTileSizeScaled > 768)
+				{
+					this.backTileSizeScaled *= 0.5;
+				}
+
+
+					this.vxs = this.vx * this.vz;
 				this.vys = this.vy * this.vz;
 
 				//Offsets to add to the background tile:
-				let boffsetx = (-this.vxs % this.bws);
-				let boffsety = (-this.vys % this.bhs);
+				let boffsetx = (-this.vxs % this.backTileSizeScaled);
+				let boffsety = (-this.vys % this.backTileSizeScaled);
 
 				//Draw the grid background:
-				let backImg = (this.zoomLevel < 2 ? Images.backtileZO : Images.backtile); //Simple switching between two images depending on zoom level.
-				if (this.bws > 0 && this.bhs > 0) //Make sure that the background size is defined before trying to divide by it.
+				for (let x = Math.ceil(this.width / this.backTileSizeScaled); x >= -1; x--)
 				{
-					for (let x = Math.ceil(this.width / this.bws); x >= -1; x--)
+					for (let y = Math.ceil(this.height / this.backTileSizeScaled); y >= -1; y--)
 					{
-						for (let y = Math.ceil(this.height / this.bhs); y >= -1; y--)
-						{
-							ctx.drawImage(backImg, x*this.bws + boffsetx, y*this.bhs + boffsety, this.bws, this.bhs);
-						}
+						ctx.drawImage(backImg, x*this.backTileSizeScaled + boffsetx, y*this.backTileSizeScaled + boffsety, this.backTileSizeScaled, this.backTileSizeScaled);
 					}
 				}
 
 				ctx.save();
-				ctx.beginPath();
 
 				let componentsRendered = 0;
 
@@ -158,12 +161,11 @@ define(
 					let componentW = thisComponent.width * this.vz;
 					let componentH = thisComponent.height * this.vz;
 
+					//Check if the component is inside the view. Otherwise dont bother rendering it.
 					if (componentX >= -componentW && componentX <= this.width+componentW)
 						if (componentY >= -componentH && componentY <= this.height+componentH)
 						{
-							//Check if the component is inside the view. Otherwise dont bother rendering it.
 							ctx.setTransform(this.vz, 0, 0, this.vz, componentX, componentY);
-							//ctx.fillText(componentW.toFixed(0), 10, 10);
 							thisComponent.render(ctx);
 							componentsRendered++;
 						}
@@ -173,7 +175,7 @@ define(
 
 
 				//Display FPS:
-				ctx.fillText(this.fps+" FPS. View X:"+this.vx.toFixed(2)+" View Y: "+this.vy.toFixed(2)+" Zoom:" + this.vz.toFixed(2) + " Components Rendered: " + componentsRendered , 10, 10);
+				ctx.fillText(this.fps+" FPS. BackSize: "+this.backTileSizeScaled+" View X:"+this.vx.toFixed(2)+" View Y: "+this.vy.toFixed(2)+" Zoom:" + this.vz.toFixed(2) + " Components Rendered: " + componentsRendered , 10, 10);
 
 				_fpscounter++;
 				window.requestAnimationFrame(this.render);
