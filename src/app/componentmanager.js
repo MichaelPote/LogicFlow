@@ -14,6 +14,8 @@ function($, Events)
 
 			this.components.push(comp);
 
+
+			return comp;
 		},
 
 		removeComponent: function(comp){
