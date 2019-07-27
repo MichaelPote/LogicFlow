@@ -10,7 +10,10 @@ define(
 function($, Events, Renderer, Camera, Component, ComponentManager)
 {
 
+
+
 	Events.on(Events.EVENT_LOADED, function(){
+
 
 		ComponentManager.addComponent(new Component(0,0,1000,1000, 1, 0.8, null));
 

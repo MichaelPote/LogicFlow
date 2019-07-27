@@ -16,9 +16,10 @@ function($, Events, Images, Element)
 
 			this.children = []; //Elements inside this component.
 
-			this.pins = []; //Array of pins
+			this.pins = []; //Array of Pins
+			this.wires = []; //Array of Wires
 
-			this.type = "";
+			this.type = "Component";
 			this.name = "";
 
 			this.render = this.render.bind(this);
@@ -34,7 +35,7 @@ function($, Events, Images, Element)
 		}
 
 		/**
-		 * Draws the shell/shape of the component (not it's children or pins)
+		 * Draws the shell/shape of the component (not it's children or pins or wires.)
 		 *
 		 * @param ctx
 		 * @param alpha
@@ -48,7 +49,7 @@ function($, Events, Images, Element)
 		}
 
 		/**
-		 * Renders the component and all it's child elements.
+		 * Renders the component's shell, pins and wires.
 		 * NOTE: All drawing commands are done with the top left corner of the component being coordinates 0,0.
 		 *
 		 * @param ctx - CanvasRenderingContext2D
@@ -58,7 +59,17 @@ function($, Events, Images, Element)
 		{
 			/** @var CanvasRenderingContext2D ctx */
 
+			for (let i = this.wires.length-1; i >= 0; i--)
+			{
+				this.wires[i].render(ctx, alpha);
+			}
+			for (let i = this.pins.length-1; i >= 0; i--)
+			{
+				this.pins[i].render(ctx, alpha);
+			}
+
 			this.renderShell(ctx, alpha);
+
 
 		}
 
