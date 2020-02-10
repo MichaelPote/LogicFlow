@@ -183,7 +183,7 @@ define(
 								if (componentAlpha > 0)
 								{
 									ctx.setTransform(componentScale, 0, 0, componentScale, componentX, componentY);
-									thisComponent.name = componentScale.toFixed(2);
+									//thisComponent.name = componentScale.toFixed(2);
 									thisComponent.render(ctx, componentAlpha);
 
 									componentsRendered++;

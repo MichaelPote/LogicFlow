@@ -6,15 +6,14 @@ define(
 		'app/camera',
 		'app/component',
 		'app/componentmanager',
+		'app/components/transistor',
 	],
-function($, Events, Renderer, Camera, Component, ComponentManager)
+function($, Events, Renderer, Camera, Component, ComponentManager, Transistor)
 {
 
 
-
-	Events.on(Events.EVENT_LOADED, function(){
-
-
+	function createStressTest()
+	{
 		ComponentManager.addComponent(new Component(0,0,1000,1000, 1, 0.8, null));
 
 		for (let i = 0; i <= 100; i++)
@@ -43,19 +42,19 @@ function($, Events, Renderer, Camera, Component, ComponentManager)
 					hgt = Math.random() * (parent.height-y-50) + 50;
 
 
-						found = true;
-						for (let j = 0; j < parent.children.length; j++)
-						{
-							let c = parent.children[j];
+					found = true;
+					for (let j = 0; j < parent.children.length; j++)
+					{
+						let c = parent.children[j];
 
-							if ((x + wid >= c.x) && (x <= c.x + c.width))
+						if ((x + wid >= c.x) && (x <= c.x + c.width))
+						{
+							if ((y + hgt >= c.y) && (y <= c.y + c.height))
 							{
-								if ((y + hgt >= c.y) && (y <= c.y + c.height))
-								{
-									found = false;
-								}
+								found = false;
 							}
 						}
+					}
 					iteration++;
 				}
 
@@ -71,26 +70,36 @@ function($, Events, Renderer, Camera, Component, ComponentManager)
 			ComponentManager.addComponent(new Component(x,y,wid,hgt, 1, 0.5, parent));
 		}
 
+	}
 
-/*
-		let cparent = new Component(Math.random()*300 - 150, Math.random()*300 - 150, 200, 200, 1, 0.5, null);
+	Events.on(Events.EVENT_LOADED, function(){
+
+
+
+
+
+		let cparent = new Component(500, 500, 200, 200, 1, 0.5, null);
 		cparent.name = "Parent";
-		let cchild1 = new Component(0, 0, 100, 100, 1, 0.5, cparent);
+
+		let cchild1 = new Component(50, 50, 150, 150, 1, 0.5, cparent);
 		cchild1.name = "Child A";
-		let cchild2 = new Component(200, 200, 100, 100, 1, 0.5, cparent);
-		cchild2.name = "Child B";
-		let ccchild1 = new Component(0, 0, 100, 100, 1, 0.8, cchild1);
-		ccchild1.name = "Child AA";
-		let ccchild2 = new Component(100, 100, 100, 100, 1, 0.8, cchild1);
-		ccchild2.name = "Child AB";
+
+		//let cchild2 = new Component(200, 200, 100, 100, 1, 0.5, cparent);
+		//cchild2.name = "Child B";
+
+		let ccchild1 = new Transistor(25, 25, 75, cparent);
+		ccchild1.name = "Transistor";
+
+		//let ccchild2 = new Component(100, 100, 75, 75, 1, 0.8, cchild1);
+		//ccchild2.name = "Child AB";
+
 
 		ComponentManager.addComponent(cparent);
-		ComponentManager.addComponent(cchild1);
-		ComponentManager.addComponent(cchild2);
+		//ComponentManager.addComponent(cchild1);
+		//ComponentManager.addComponent(cchild2);
 		ComponentManager.addComponent(ccchild1);
-		ComponentManager.addComponent(ccchild2);
+		//ComponentManager.addComponent(ccchild2);
 
-*/
 		Renderer.start();
 	});
 

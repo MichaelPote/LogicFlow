@@ -10,10 +10,21 @@ function($, Events)
 
 		components: [],
 
+		topLevel: [],
+
+		/**
+		 *
+		 * @param Component comp
+		 * @returns {{parent}}
+		 */
 		addComponent: function(comp){
 
 			this.components.push(comp);
 
+			if (!comp.parent)
+			{
+				this.topLevel.push(comp);
+			}
 
 			return comp;
 		},

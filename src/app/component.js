@@ -4,6 +4,8 @@ define(
 		'app/events',
 		'app/images',
 		'app/element',
+		'app/wire',
+		'app/pin',
 	],
 function($, Events, Images, Element)
 {
@@ -25,12 +27,40 @@ function($, Events, Images, Element)
 			this.render = this.render.bind(this);
 		}
 
+		addPin(pin)
+		{
+			this.pins.push(pin);
+		}
+
+		addWire(wire)
+		{
+			this.wires.push(wire);
+		}
+
+		getPinByName(pinName)
+		{
+			for (let i = 0; i < this.pins.length; i++)
+			{
+				if (this.pins[i].name == pinName)
+				{
+					return this.pins[i];
+				}
+			}
+
+			return false;
+		}
+
+		addChild(child)
+		{
+			this.children.push(child);
+		}
+
 		setParent(parent)
 		{
 			super.setParent(parent);
 			if (parent != null && parent instanceof Component)
 			{
-				parent.children.push(this);
+				parent.addChild(this);
 			}
 		}
 
@@ -44,7 +74,7 @@ function($, Events, Images, Element)
 		{
 			/** @var CanvasRenderingContext2D ctx */
 			ctx.globalAlpha = alpha;
-			ctx.fillText(this.name, 5, 16);
+			if (name.length > 0) ctx.fillText(this.name, 5, 16);
 			ctx.strokeRect(0, 0, this.width, this.height);
 		}
 
@@ -59,18 +89,20 @@ function($, Events, Images, Element)
 		{
 			/** @var CanvasRenderingContext2D ctx */
 
-			for (let i = this.wires.length-1; i >= 0; i--)
-			{
-				this.wires[i].render(ctx, alpha);
-			}
+			this.renderShell(ctx, alpha);
+
 			for (let i = this.pins.length-1; i >= 0; i--)
 			{
 				this.pins[i].render(ctx, alpha);
 			}
 
-			this.renderShell(ctx, alpha);
+			for (let i = this.wires.length-1; i >= 0; i--)
+			{
+				this.wires[i].render(ctx, alpha);
+			}
 
-
+			//Reset stroke style after rendering wires which can change the stroke style.
+			ctx.strokeStyle = '#FFFFFF';
 		}
 
 	}
